@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ethers } from "ethers";
 
 const MetaConnect = () => {
+    const [message, setMessage] = useState<string>("");
     const [address, setAddress] = useState<string>("");
     const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner>();
     const [provider, setProvider] = useState<ethers.providers.Web3Provider>();
@@ -58,6 +59,19 @@ const MetaConnect = () => {
         });
     }, [accountName, address, amount, chainId, signer]);
 
+    const handleSignMessage = useCallback(async () => {
+        if (!signer) return;
+
+        signer.signMessage(message);
+    }, [message, signer]);
+
+    const handleChangeMessage = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setMessage(e.target.value);
+        },
+        []
+    );
+
     const handleChangeAccountName = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             setAccountName(e.target.value);
@@ -94,7 +108,7 @@ const MetaConnect = () => {
     }, [address]);
 
     return (
-        <form className="grid place-content-center h-[100vh]">
+        <div className="grid place-content-center h-[100vh]">
             {address === "" ? (
                 <button className="btn btn-primary" onClick={handleConnect}>
                     Connect Wallet
@@ -112,58 +126,84 @@ const MetaConnect = () => {
                     </p>
                 </div>
             )}
-            {/* <div className="mt-4 w-96">
-                <label htmlFor="account-name">Network</label>
-                <select value={network} onChange={handleChangeNetwork} className="inp">
-                    <option value="mainnet01">Mainnet</option>
-                    <option value="testnet04">Rinkeby</option>
-                </select>
-            </div> */}
-            <div className="mt-4 w-96">
-                <label htmlFor="network">Account name</label>
-                <input
-                    value={accountName}
-                    onChange={handleChangeAccountName}
-                    className="inp"
-                    required
-                />
-            </div>
-            <div className="mt-4 w-96">
-                <label htmlFor="account-name">ChainId</label>
-                <input
-                    value={chainId}
-                    onChange={handleChangeChainId}
-                    className="inp"
-                    type="number"
-                    required
-                />
-            </div>
-            <div className="mt-4 w-96">
-                <label htmlFor="account-name">Amount</label>
-                <input
-                    value={amount}
-                    onChange={handleChangeAmount}
-                    className="inp"
-                    required
-                />
-            </div>
-            <div className="mt-4 w-96">
-                <button
-                    onClick={handleSign}
-                    className="btn btn-primary"
-                    type="button"
-                >
-                    Sign Transaction
-                </button>
-                <button
-                    onClick={handleSend}
-                    className="btn btn-secondary ml-4"
-                    type="button"
-                >
-                    Send Transaction
-                </button>
-            </div>
-        </form>
+            <form>
+                <div className="mt-4 w-96">
+                    <label htmlFor="account-name">Message</label>
+                    <input
+                        value={message}
+                        onChange={handleChangeMessage}
+                        className="inp"
+                        required
+                    />
+                </div>
+                <div className="mt-4 w-96">
+                    <button
+                        onClick={handleSignMessage}
+                        className="btn btn-primary"
+                        type="button"
+                    >
+                        Sign Message
+                    </button>
+                </div>
+            </form>
+            <form>
+                {/* <div className="mt-4 w-96">
+                    <label htmlFor="account-name">Network</label>
+                    <select
+                        value={network}
+                        onChange={handleChangeNetwork}
+                        className="inp"
+                    >
+                        <option value="mainnet01">Mainnet</option>
+                        <option value="testnet04">Rinkeby</option>
+                    </select>
+                </div> */}
+                <div className="mt-4 w-96">
+                    <label htmlFor="network">Account name</label>
+                    <input
+                        value={accountName}
+                        onChange={handleChangeAccountName}
+                        className="inp"
+                        required
+                    />
+                </div>
+                <div className="mt-4 w-96">
+                    <label htmlFor="account-name">ChainId</label>
+                    <input
+                        value={chainId}
+                        onChange={handleChangeChainId}
+                        className="inp"
+                        type="number"
+                        required
+                    />
+                </div>
+                <div className="mt-4 w-96">
+                    <label htmlFor="account-name">Amount</label>
+                    <input
+                        value={amount}
+                        onChange={handleChangeAmount}
+                        className="inp"
+                        required
+                    />
+                </div>
+                <div className="mt-4 w-96">
+                    <button
+                        onClick={handleSign}
+                        className="btn btn-primary"
+                        type="button"
+                    >
+                        Sign Transaction
+                    </button>
+                    <button
+                        onClick={handleSend}
+                        className="btn btn-secondary ml-4"
+                        type="button"
+                    >
+                        Send Transaction
+                    </button>
+                </div>
+            </form>
+        </div>
     );
 };
 export default MetaConnect;
