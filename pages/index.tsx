@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ethers } from "ethers";
+const Tx = require("ethereumjs-tx");
 
 const MetaConnect = () => {
     const [message, setMessage] = useState<string>("");
@@ -7,10 +8,12 @@ const MetaConnect = () => {
     const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner>();
     const [provider, setProvider] = useState<ethers.providers.Web3Provider>();
     const [network, setNetwork] = useState<string>("");
-    const [accountName, setAccountName] = useState<string>("");
+    const [accountAddress, setAccountAddress] = useState<string>("");
     const [chainId, setChainId] = useState<string>("");
     const [amount, setAmount] = useState<string>("");
     const [balance, setBalance] = useState<ethers.BigNumber>();
+    const [signTx, setSignTx] = useState<string>("");
+    const [sendTx, setSendTx] = useState<string>("");
 
     const handleConnect = useCallback(async () => {
         const prov = new ethers.providers.Web3Provider(
@@ -36,28 +39,64 @@ const MetaConnect = () => {
     }, []);
 
     const handleSign = useCallback(async () => {
-        if (!signer || accountName === "" || chainId === "" || amount === "")
-            return;
+        let privatekey =
+            "CE75F1A875F2DB7FB064F5DBD302B0C77FFEAA18CC4C314167A5111A04F79AFA";
+        let wallet = new ethers.Wallet(privatekey);
 
-        signer.signTransaction({
-            to: accountName,
-            chainId: Number(chainId),
-            from: address,
-            value: ethers.utils.parseEther(amount),
-        });
-    }, [accountName, address, amount, chainId, signer]);
+        console.log("Using wallet address " + wallet.address);
+
+        let transaction = {
+            to: "0xa238b6008Bc2FBd9E386A5d4784511980cE504Cd",
+            value: ethers.utils.parseEther("1"),
+            gasLimit: "21000",
+            maxPriorityFeePerGas: ethers.utils.parseUnits("5", "gwei"),
+            maxFeePerGas: ethers.utils.parseUnits("20", "gwei"),
+            nonce: 1,
+            type: 2,
+            chainId: 4,
+        };
+
+        // sign and serialize the transaction
+        let rawTransaction = await wallet
+            .signTransaction(transaction)
+            .then(() => ethers.utils.serializeTransaction(transaction));
+
+        setSignTx(rawTransaction);
+    }, []);
 
     const handleSend = useCallback(async () => {
-        if (!signer || accountName === "" || chainId === "" || amount === "")
+        if (
+            !signer ||
+            accountAddress === "" ||
+            chainId === "" ||
+            amount === "" ||
+            !provider
+        )
             return;
 
-        signer.sendTransaction({
-            to: accountName,
+        // const params = [
+        //     {
+        //         from: address,
+        //         to: accountAddress,
+        //         value: ethers.utils.parseUnits(amount, "ether").toHexString(),
+        //     },
+        // ];
+
+        // const transactionHash = await provider.send(
+        //     "eth_sendTransaction",
+        //     params
+        // );
+        // console.log("transactionHash is " + transactionHash);
+        // setSendTx(transactionHash);
+
+        const tx = await signer.sendTransaction({
+            to: accountAddress,
             chainId: Number(chainId),
             from: address,
             value: ethers.utils.parseEther(amount),
         });
-    }, [accountName, address, amount, chainId, signer]);
+        setSendTx(tx.hash);
+    }, [accountAddress, address, amount, chainId, signer, provider]);
 
     const handleSignMessage = useCallback(async () => {
         if (!signer) return;
@@ -72,9 +111,9 @@ const MetaConnect = () => {
         []
     );
 
-    const handleChangeAccountName = useCallback(
+    const handleChangeAccountAddress = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            setAccountName(e.target.value);
+            setAccountAddress(e.target.value);
         },
         []
     );
@@ -124,6 +163,8 @@ const MetaConnect = () => {
                         {balance &&
                             ethers.utils.formatEther(balance).toString()}
                     </p>
+                    <p>Sign tx hash: {signTx}</p>
+                    <p>Send tx hash: {sendTx}</p>
                 </div>
             )}
             <form>
@@ -159,10 +200,10 @@ const MetaConnect = () => {
                     </select>
                 </div> */}
                 <div className="mt-4 w-96">
-                    <label htmlFor="network">Account name</label>
+                    <label htmlFor="network">Account address</label>
                     <input
-                        value={accountName}
-                        onChange={handleChangeAccountName}
+                        value={accountAddress}
+                        onChange={handleChangeAccountAddress}
                         className="inp"
                         required
                     />
