@@ -1,49 +1,46 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ethers } from "ethers";
 const Tx = require("ethereumjs-tx");
+import WalletConnectProvider from "@walletconnect/web3-provider";
+import { providers } from "ethers";
 
 const MetaConnect = () => {
-    const [message, setMessage] = useState<string>("");
     const [address, setAddress] = useState<string>("");
     const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner>();
     const [provider, setProvider] = useState<ethers.providers.Web3Provider>();
-    const [network, setNetwork] = useState<string>("");
-    const [accountAddress, setAccountAddress] = useState<string>("");
-    const [chainId, setChainId] = useState<string>("");
-    const [amount, setAmount] = useState<string>("");
+    const [wcProvider, setWcProvider] = useState<WalletConnectProvider>();
     const [balance, setBalance] = useState<ethers.BigNumber>();
     const [signTx, setSignTx] = useState<string>("");
+    const [signMessageTx, setSignMessageTx] = useState<string>("");
     const [sendTx, setSendTx] = useState<string>("");
+    const [signTypedDataResult, setSignTypeDataResult] = useState<string>("");
 
     const handleConnect = useCallback(async () => {
-        const prov = new ethers.providers.Web3Provider(
-            (window as any).ethereum,
-            "any"
-        );
-        // Prompt user for account connections
-        await prov.send("eth_requestAccounts", []);
-        const signer = prov.getSigner();
-        setProvider(prov);
-        setSigner(signer);
-        setAddress(await signer.getAddress());
+        const p = new WalletConnectProvider({
+            infuraId: "5d272c78c7584bd4b948a6b48070e8be",
+            chainId: 4,
+        });
+        await p.enable();
+        setWcProvider(p);
+
+        const web3Provider = new providers.Web3Provider(p);
+        setProvider(web3Provider);
+        const web3Signer = web3Provider.getSigner();
+        setSigner(web3Signer);
+        const web3Address = await web3Signer.getAddress();
+        setAddress(web3Address);
     }, []);
 
     const handleDisconnect = useCallback(async () => {
-        const { ethereum } = window as any;
-        const accounts = await ethereum.request({ method: "eth_accounts" });
-        if (accounts && accounts.length > 0) {
-            console.log("user is connected");
-        } else {
-            console.log("user not connected");
-        }
-    }, []);
+        if (!wcProvider) return;
 
-    const handleSign = useCallback(async () => {
+        wcProvider.disconnect();
+    }, [wcProvider]);
+
+    const handleSignTransaction = useCallback(async () => {
         let privatekey =
             "CE75F1A875F2DB7FB064F5DBD302B0C77FFEAA18CC4C314167A5111A04F79AFA";
         let wallet = new ethers.Wallet(privatekey);
-
-        console.log("Using wallet address " + wallet.address);
 
         let transaction = {
             to: "0xa238b6008Bc2FBd9E386A5d4784511980cE504Cd",
@@ -64,82 +61,69 @@ const MetaConnect = () => {
         setSignTx(rawTransaction);
     }, []);
 
-    const handleSend = useCallback(async () => {
-        if (
-            !signer ||
-            accountAddress === "" ||
-            chainId === "" ||
-            amount === "" ||
-            !provider
-        )
-            return;
-
-        // const params = [
-        //     {
-        //         from: address,
-        //         to: accountAddress,
-        //         value: ethers.utils.parseUnits(amount, "ether").toHexString(),
-        //     },
-        // ];
-
-        // const transactionHash = await provider.send(
-        //     "eth_sendTransaction",
-        //     params
-        // );
-        // console.log("transactionHash is " + transactionHash);
-        // setSendTx(transactionHash);
+    const handleSendTransation = useCallback(async () => {
+        if (!signer) return;
 
         const tx = await signer.sendTransaction({
-            to: accountAddress,
-            chainId: Number(chainId),
+            to: "0x3c407a745bD2A27F11E35B58658b62561b6544d4",
+            chainId: 4,
             from: address,
-            value: ethers.utils.parseEther(amount),
+            value: ethers.utils.parseEther("0.001"),
         });
         setSendTx(tx.hash);
-    }, [accountAddress, address, amount, chainId, signer, provider]);
+    }, [address, signer]);
 
     const handleSignMessage = useCallback(async () => {
         if (!signer) return;
 
-        signer.signMessage(message);
-    }, [message, signer]);
+        const tx = await signer.signMessage("message");
 
-    const handleChangeMessage = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setMessage(e.target.value);
-        },
-        []
-    );
+        setSignMessageTx(tx);
+    }, [signer]);
 
-    const handleChangeAccountAddress = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setAccountAddress(e.target.value);
-        },
-        []
-    );
+    const handleSignTypeData = useCallback(async () => {
+        if (!signer) return;
+        const domain = {
+            name: "Ether Mail",
+            version: "2.0",
+            chainId: 4,
+            verifyingContract: "0x49ea470215EAe737334cE4EA112c1b29A9563E1B",
+        };
 
-    const handleChangeNetwork: React.ReactEventHandler<HTMLSelectElement> =
-        useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-            setNetwork(e.target.value);
-        }, []);
+        const types = {
+            Person: [
+                { name: "name", type: "string" },
+                { name: "wallet", type: "address" },
+            ],
+            Mail: [
+                { name: "from", type: "Person" },
+                { name: "to", type: "Person" },
+                { name: "contents", type: "string" },
+            ],
+        };
 
-    const handleChangeChainId = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setChainId(e.target.value);
-        },
-        []
-    );
+        const value = {
+            from: {
+                name: "Cow",
+                wallet: address,
+            },
+            to: {
+                name: "Bob",
+                wallet: "0x3c407a745bD2A27F11E35B58658b62561b6544d4",
+            },
+            contents: "Hello, Bob!",
+        };
 
-    const handleChangeAmount = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setAmount(e.target.value);
-        },
-        []
-    );
+        const signature = await signer._signTypedData(domain, types, value);
+
+        setSignTypeDataResult(signature);
+    }, [signer, address]);
 
     useEffect(() => {
+        if (!provider) return;
+
         const getBalance = async (address: string) => {
-            const balance = await provider?.getBalance(address);
+            const balance = await provider.getBalance(address);
             setBalance(balance);
         };
         getBalance(address);
@@ -163,85 +147,46 @@ const MetaConnect = () => {
                         {balance &&
                             ethers.utils.formatEther(balance).toString()}
                     </p>
+                    <p>Sign Message tx hash: {signMessageTx}</p>
                     <p>Sign tx hash: {signTx}</p>
                     <p>Send tx hash: {sendTx}</p>
+                    <p>Sign Type Data result: {signTypedDataResult}</p>
                 </div>
             )}
             <form>
                 <div className="mt-4 w-96">
-                    <label htmlFor="account-name">Message</label>
-                    <input
-                        value={message}
-                        onChange={handleChangeMessage}
-                        className="inp"
-                        required
-                    />
-                </div>
-                <div className="mt-4 w-96">
                     <button
-                        onClick={handleSignMessage}
-                        className="btn btn-primary"
-                        type="button"
-                    >
-                        Sign Message
-                    </button>
-                </div>
-            </form>
-            <form>
-                {/* <div className="mt-4 w-96">
-                    <label htmlFor="account-name">Network</label>
-                    <select
-                        value={network}
-                        onChange={handleChangeNetwork}
-                        className="inp"
-                    >
-                        <option value="mainnet01">Mainnet</option>
-                        <option value="testnet04">Rinkeby</option>
-                    </select>
-                </div> */}
-                <div className="mt-4 w-96">
-                    <label htmlFor="network">Account address</label>
-                    <input
-                        value={accountAddress}
-                        onChange={handleChangeAccountAddress}
-                        className="inp"
-                        required
-                    />
-                </div>
-                <div className="mt-4 w-96">
-                    <label htmlFor="account-name">ChainId</label>
-                    <input
-                        value={chainId}
-                        onChange={handleChangeChainId}
-                        className="inp"
-                        type="number"
-                        required
-                    />
-                </div>
-                <div className="mt-4 w-96">
-                    <label htmlFor="account-name">Amount</label>
-                    <input
-                        value={amount}
-                        onChange={handleChangeAmount}
-                        className="inp"
-                        required
-                    />
-                </div>
-                <div className="mt-4 w-96">
-                    <button
-                        onClick={handleSign}
+                        onClick={handleSignTransaction}
                         className="btn btn-primary"
                         type="button"
                     >
                         Sign Transaction
                     </button>
                     <button
-                        onClick={handleSend}
-                        className="btn btn-secondary ml-4"
+                        onClick={handleSendTransation}
+                        className="btn btn-primary ml-4"
                         type="button"
                     >
                         Send Transaction
                     </button>
+                    <div className="mt-4 w-96">
+                        <button
+                            onClick={handleSignMessage}
+                            className="btn btn-primary"
+                            type="button"
+                        >
+                            Sign Message
+                        </button>
+                    </div>
+                    <div className="mt-4 w-96">
+                        <button
+                            onClick={handleSignTypeData}
+                            className="btn btn-primary"
+                            type="button"
+                        >
+                            Sign Type Data
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
