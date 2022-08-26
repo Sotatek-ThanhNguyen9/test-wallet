@@ -132,6 +132,13 @@ const MetaConnect = () => {
 
     return (
         <div className="grid place-content-center h-[100vh]">
+            {address === "" ? (
+                <button className="btn btn-primary" onClick={handleConnect}>
+                    Connect Wallet
+                </button>
+            ) : (
+                <button onClick={handleDisconnect}>Disconnect Wallet</button>
+            )}
             {address && (
                 <div>
                     <p>Address: {address}</p>
@@ -146,20 +153,8 @@ const MetaConnect = () => {
                     <p>Sign Type Data result: {signTypedDataResult}</p>
                 </div>
             )}
-            {address === "" ? (
-                <button className="btn btn-primary" onClick={handleConnect}>
-                    Connect Wallet
-                </button>
-            ) : (
-                <button
-                    onClick={handleDisconnect}
-                    className="btn btn-secondary"
-                >
-                    Disconnect Wallet
-                </button>
-            )}
-            <div>
-                <div className="mt-4 grid grid-cols-3 gap-4">
+            <form>
+                <div className="mt-4 w-96">
                     <button
                         onClick={handleSignTransaction}
                         className="btn btn-primary"
@@ -169,27 +164,31 @@ const MetaConnect = () => {
                     </button>
                     <button
                         onClick={handleSendTransation}
-                        className="btn btn-primary"
+                        className="btn btn-primary ml-4"
                         type="button"
                     >
                         Send Transaction
                     </button>
-                    <button
-                        onClick={handleSignMessage}
-                        className="btn btn-primary"
-                        type="button"
-                    >
-                        Sign Message
-                    </button>
-                    <button
-                        onClick={handleSignTypeData}
-                        className="btn btn-primary"
-                        type="button"
-                    >
-                        Sign Type Data
-                    </button>
+                    <div className="mt-4 w-96">
+                        <button
+                            onClick={handleSignMessage}
+                            className="btn btn-primary"
+                            type="button"
+                        >
+                            Sign Message
+                        </button>
+                    </div>
+                    <div className="mt-4 w-96">
+                        <button
+                            onClick={handleSignTypeData}
+                            className="btn btn-primary"
+                            type="button"
+                        >
+                            Sign Type Data
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     );
 };
