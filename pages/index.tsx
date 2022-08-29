@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ethers } from "ethers";
-const Tx = require("ethereumjs-tx");
-import WalletConnectProvider from "@walletconnect/web3-provider";
-import { providers } from "ethers";
+import { ethers, providers } from "ethers";
 
 const MetaConnect = () => {
     const [address, setAddress] = useState<string>("");
