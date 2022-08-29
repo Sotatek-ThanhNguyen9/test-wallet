@@ -105,6 +105,11 @@ const MetaConnect = () => {
         setSignTypeDataResult(signature);
     }, [signer, address]);
 
+    const shorttenAddress = useCallback((str: string) => {
+        if (str.length === 0) return;
+        return `${str.substring(0, 6)}...${str.substring(str.length - 4)}`;
+    }, []);
+
     useEffect(() => {
         if (!provider) return;
 
@@ -118,25 +123,52 @@ const MetaConnect = () => {
 
     return (
         <div className="grid place-content-center h-[100vh]">
-            {address && (
-                <div>
-                    <p>Address: {address}</p>
-                    <p>
-                        Balance:{" "}
-                        {balance &&
-                            ethers.utils.formatEther(balance).toString()}
-                    </p>
-                    <p>Sign Message tx hash: {signMessageTx}</p>
-                    <p>Sign tx hash: {signTx}</p>
-                    <p>Send tx hash: {sendTx}</p>
-                    <p>Sign Type Data result: {signTypedDataResult}</p>
-                </div>
-            )}
-            <button className="btn btn-primary" onClick={handleConnect}>
-                Connect Wallet
-            </button>
-            <div>
-                <div className="mt-4 grid grid-cols-3 gap-4">
+            <div className="max-w-[100vw] flex flex-col justify-center items-center">
+                {address && (
+                    <div>
+                        <p>Address: {shorttenAddress(address)}</p>
+                        <p>
+                            Balance:{" "}
+                            {balance &&
+                                ethers.utils.formatEther(balance).toString()}
+                        </p>
+                        {/* <p>
+                            Sign Message tx hash:{" "}
+                            {shorttenAddress(signMessageTx)}
+                        </p>
+                        <p>Sign tx hash: {shorttenAddress(signTx)}</p> */}
+                        <p>
+                            Send tx hash:{" "}
+                            <a
+                                href={`https://rinkeby.etherscan.io/tx/${sendTx}`}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                {shorttenAddress(sendTx)}
+                            </a>
+                        </p>
+                        {/* <p>
+                            Sign Type Data result:{" "}
+                            {shorttenAddress(signTypedDataResult)}
+                        </p> */}
+                    </div>
+                )}
+                <div className="mt-4 grid sm:grid-cols-3 xs:grid-cols-1 gap-4 w-80">
+                    {!address && (
+                        <button
+                            className="btn btn-primary w-full"
+                            onClick={handleConnect}
+                        >
+                            Connect Wallet
+                        </button>
+                    )}
+                    <button
+                        onClick={handleSignMessage}
+                        className="btn btn-primary"
+                        type="button"
+                    >
+                        Sign Message
+                    </button>
                     <button
                         onClick={handleSignTransaction}
                         className="btn btn-primary"
@@ -150,13 +182,6 @@ const MetaConnect = () => {
                         type="button"
                     >
                         Send Transaction
-                    </button>
-                    <button
-                        onClick={handleSignMessage}
-                        className="btn btn-primary"
-                        type="button"
-                    >
-                        Sign Message
                     </button>
                     <button
                         onClick={handleSignTypeData}
