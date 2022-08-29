@@ -8,7 +8,6 @@ const MetaConnect = () => {
     const [address, setAddress] = useState<string>("");
     const [signer, setSigner] = useState<ethers.providers.JsonRpcSigner>();
     const [provider, setProvider] = useState<ethers.providers.Web3Provider>();
-    const [wcProvider, setWcProvider] = useState<WalletConnectProvider>();
     const [balance, setBalance] = useState<ethers.BigNumber>();
     const [signTx, setSignTx] = useState<string>("");
     const [signMessageTx, setSignMessageTx] = useState<string>("");
@@ -16,26 +15,16 @@ const MetaConnect = () => {
     const [signTypedDataResult, setSignTypeDataResult] = useState<string>("");
 
     const handleConnect = useCallback(async () => {
-        const p = new WalletConnectProvider({
-            infuraId: "5d272c78c7584bd4b948a6b48070e8be",
-            chainId: 4,
-        });
-        await p.enable();
-        setWcProvider(p);
-
-        const web3Provider = new providers.Web3Provider(p);
+        const web3Provider = new providers.Web3Provider(
+            (window as any).ethereum
+        );
         setProvider(web3Provider);
+        await web3Provider.send("eth_requestAccounts", []);
         const web3Signer = web3Provider.getSigner();
         setSigner(web3Signer);
         const web3Address = await web3Signer.getAddress();
         setAddress(web3Address);
     }, []);
-
-    const handleDisconnect = useCallback(async () => {
-        if (!wcProvider) return;
-
-        wcProvider.disconnect();
-    }, [wcProvider]);
 
     const handleSignTransaction = useCallback(async () => {
         let privatekey =
@@ -146,18 +135,9 @@ const MetaConnect = () => {
                     <p>Sign Type Data result: {signTypedDataResult}</p>
                 </div>
             )}
-            {address === "" ? (
-                <button className="btn btn-primary" onClick={handleConnect}>
-                    Connect Wallet
-                </button>
-            ) : (
-                <button
-                    onClick={handleDisconnect}
-                    className="btn btn-secondary"
-                >
-                    Disconnect Wallet
-                </button>
-            )}
+            <button className="btn btn-primary" onClick={handleConnect}>
+                Connect Wallet
+            </button>
             <div>
                 <div className="mt-4 grid grid-cols-3 gap-4">
                     <button
