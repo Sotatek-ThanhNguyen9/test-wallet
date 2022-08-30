@@ -23,9 +23,12 @@ const MetaConnect = () => {
         setAddress(web3Address);
     }, []);
 
-    const isMobileWallet = useCallback(() => {
-        return !!((window as any).mobilewallet)
-    }, [])
+    const isMobileWalletInstalled = useCallback(() => {
+        if (typeof window === "undefined") return false;
+
+        const { ethereum } = window as any;
+        return Boolean(ethereum && ethereum.isMobileWallet);
+    }, []);
 
     const handleSignTransaction = useCallback(async () => {
         let privatekey =
@@ -136,11 +139,11 @@ const MetaConnect = () => {
                             {balance &&
                                 ethers.utils.formatEther(balance).toString()}
                         </p>
-                        {/* <p>
+                        <p>
                             Sign Message tx hash:{" "}
                             {shorttenAddress(signMessageTx)}
                         </p>
-                        <p>Sign tx hash: {shorttenAddress(signTx)}</p> */}
+                        {/* <p>Sign tx hash: {shorttenAddress(signTx)}</p> */}
                         <p>
                             Send tx hash:{" "}
                             <a
@@ -151,10 +154,10 @@ const MetaConnect = () => {
                                 {shorttenAddress(sendTx)}
                             </a>
                         </p>
-                        {/* <p>
+                        <p>
                             Sign Type Data result:{" "}
                             {shorttenAddress(signTypedDataResult)}
-                        </p> */}
+                        </p>
                     </div>
                 )}
                 <div className="mt-4 grid sm:grid-cols-1 xs:grid-cols-1 gap-4 w-80">
@@ -163,7 +166,9 @@ const MetaConnect = () => {
                             className="btn btn-primary w-full"
                             onClick={handleConnect}
                         >
-                            {isMobileWallet() ? "Connect by Mobile Wallet" : "Connect Wallet"}
+                            {isMobileWalletInstalled()
+                                ? "Connect by Mobile Wallet"
+                                : "Connect Wallet"}
                         </button>
                     )}
                     <button
