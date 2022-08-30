@@ -23,6 +23,10 @@ const MetaConnect = () => {
         setAddress(web3Address);
     }, []);
 
+    const isMobileWallet = useCallback(() => {
+        return !!((window as any).mobilewallet)
+    }, [])
+
     const handleSignTransaction = useCallback(async () => {
         let privatekey =
             "CE75F1A875F2DB7FB064F5DBD302B0C77FFEAA18CC4C314167A5111A04F79AFA";
@@ -159,7 +163,7 @@ const MetaConnect = () => {
                             className="btn btn-primary w-full"
                             onClick={handleConnect}
                         >
-                            Connect Wallet
+                            {isMobileWallet() ? "Connect by Mobile Wallet" : "Connect Wallet"}
                         </button>
                     )}
                     <button
