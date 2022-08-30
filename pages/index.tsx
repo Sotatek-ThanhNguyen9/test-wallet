@@ -169,13 +169,13 @@ const MetaConnect = () => {
                     >
                         Sign Message
                     </button>
-                    <button
+                    {/* <button
                         onClick={handleSignTransaction}
                         className="btn btn-primary"
                         type="button"
                     >
                         Sign Transaction
-                    </button>
+                    </button> */}
                     <button
                         onClick={handleSendTransation}
                         className="btn btn-primary"
