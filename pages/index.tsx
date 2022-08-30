@@ -153,7 +153,7 @@ const MetaConnect = () => {
                         </p> */}
                     </div>
                 )}
-                <div className="mt-4 grid sm:grid-cols-3 xs:grid-cols-1 gap-4 w-80">
+                <div className="mt-4 grid sm:grid-cols-1 xs:grid-cols-1 gap-4 w-80">
                     {!address && (
                         <button
                             className="btn btn-primary w-full"
